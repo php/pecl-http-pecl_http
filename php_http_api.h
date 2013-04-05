@@ -23,6 +23,8 @@
 #include <php.h>
 #include <SAPI.h>
 
+#include <ext/raphf/php_raphf.h>
+#include <ext/propro/php_propro.h>
 #include <ext/standard/php_string.h>
 #include <ext/spl/spl_iterators.h>
 #include <ext/date/php_date.h>
@@ -73,7 +75,6 @@ typedef int STATUS;
 #include "php_http_buffer.h"
 #include "php_http_strlist.h"
 #include "php_http_misc.h"
-#include "php_http_resource_factory.h"
 #include "php_http_options.h"
 
 #include "php_http.h"
@@ -94,28 +95,18 @@ typedef int STATUS;
 #include "php_http_negotiate.h"
 #include "php_http_object.h"
 #include "php_http_params.h"
-#include "php_http_persistent_handle.h"
-#include "php_http_property_proxy.h"
 #include "php_http_querystring.h"
-#include "php_http_client_interface.h"
 #include "php_http_client.h"
 #include "php_http_curl.h"
 #include "php_http_serf.h"
 #include "php_http_client_request.h"
 #include "php_http_client_response.h"
-#include "php_http_curl_client.h"
-#include "php_http_serf_client.h"
-#include "php_http_client_pool.h"
-#include "php_http_curl_client_pool.h"
-#include "php_http_client_datashare.h"
-#include "php_http_curl_client_datashare.h"
-#include "php_http_client_factory.h"
+#include "php_http_client_curl.h"
 #include "php_http_url.h"
 #include "php_http_version.h"
 
 ZEND_BEGIN_MODULE_GLOBALS(php_http)
 	struct php_http_env_globals env;
-	struct php_http_persistent_handle_globals persistent_handle;
 #if PHP_HTTP_HAVE_CURL && PHP_HTTP_HAVE_EVENT
 	struct php_http_curl_globals curl;
 #endif

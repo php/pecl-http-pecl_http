@@ -141,7 +141,7 @@ class MessageTest extends PHPUnit_Framework_TestCase
 			array(
 				array(
 					"cookies" => array("foo" => "bar"),
-					"expires" => date_create("2012-12-31 23:59:59")->format(
+					"expires" => date_create("2012-12-31 22:59:59 GMT")->format(
 						DateTime::COOKIE
 					),
 					"path" => "/somewhere"
@@ -204,7 +204,7 @@ class MessageTest extends PHPUnit_Framework_TestCase
 	
 	function testEmptyUrlWarning() {
 		$m = new http\Message;
-		$this->setExpectedException("PHPUnit_Framework_Error_Warning");
+		$this->setExpectedException("PHPUnit_Framework_Error_Notice");
 		$m->setRequestUrl("/foo");
 		$m->setType(http\Message::TYPE_REQUEST);
 		$this->setExpectedException("PHPUnit_Framework_Error_Warning");
@@ -238,7 +238,7 @@ class MessageTest extends PHPUnit_Framework_TestCase
  		
  		$d = new http\Encoding\Stream\Deflate;
  		$s = "";
- 		$m->toCallback(function ($m, $data) use ($d) {
+ 		$m->toCallback(function ($m, $data) use ($d, &$s) {
  			$s.=$d->update($data);
  		});
  		$s.=$d->finish();
