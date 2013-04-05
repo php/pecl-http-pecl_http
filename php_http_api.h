@@ -102,6 +102,7 @@ typedef int STATUS;
 #include "php_http_client_request.h"
 #include "php_http_client_response.h"
 #include "php_http_client_curl.h"
+#include "php_http_client_serf.h"
 #include "php_http_url.h"
 #include "php_http_version.h"
 
@@ -109,6 +110,9 @@ ZEND_BEGIN_MODULE_GLOBALS(php_http)
 	struct php_http_env_globals env;
 #if PHP_HTTP_HAVE_CURL && PHP_HTTP_HAVE_EVENT
 	struct php_http_curl_globals curl;
+#endif
+#if PHP_HTTP_HAVE_SERF
+	struct php_http_serf_globals serf;
 #endif
 ZEND_END_MODULE_GLOBALS(php_http)
 

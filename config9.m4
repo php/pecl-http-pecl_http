@@ -8,6 +8,8 @@ PHP_ARG_WITH([http-zlib-dir], [],
 [  --with-http-zlib-dir[=DIR]     HTTP: where to find zlib], $PHP_HTTP, $PHP_HTTP)
 PHP_ARG_WITH([http-libcurl-dir], [],
 [  --with-http-libcurl-dir[=DIR]  HTTP: where to find libcurl], $PHP_HTTP, $PHP_HTTP)
+PHP_ARG_WITH([http-libserf-dir], [],
+[  --with-http-libserf-dir[=DIR]  HTTP: where to find libserf], $PHP_HTTP, $PHP_HTTP)
 PHP_ARG_WITH([http-libevent-dir], [],
 [  --with-http-libevent-dir[=DIR] HTTP: where to find libevent], $PHP_HTTP_LIBCURL_DIR, "")
 PHP_ARG_WITH([http-libserf-dir], [],
@@ -494,6 +496,7 @@ dnl ----
 		php_http.c \
 		php_http_client.c \
 		php_http_client_curl.c \
+		php_http_client_serf.c \
 		php_http_client_request.c \
 		php_http_client_response.c \
 		php_http_cookie.c \
@@ -537,14 +540,9 @@ dnl ----
 	PHP_HTTP_HEADERS="
 		php_http_api.h \
 		php_http_buffer.h \
-		php_http_curl_client.h \
-		php_http_curl_client_datashare.h \
-		php_http_client_datashare.h \
-		php_http_client_factory.h \
 		php_http_client.h \
-		php_http_client_interface.h \
-		php_http_curl_client_pool.h \
-		php_http_client_pool.h \
+		php_http_client_curl.h \
+		php_http_client_serf.h \
 		php_http_client_request.h \
 		php_http_client_response.h \
 		php_http_cookie.h \
