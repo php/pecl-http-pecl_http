@@ -10,6 +10,10 @@ PHP_ARG_WITH([http-libcurl-dir], [],
 [  --with-http-libcurl-dir[=DIR]  HTTP: where to find libcurl], $PHP_HTTP, $PHP_HTTP)
 PHP_ARG_WITH([http-libevent-dir], [],
 [  --with-http-libevent-dir[=DIR] HTTP: where to find libevent], $PHP_HTTP_LIBCURL_DIR, "")
+PHP_ARG_WITH([http-libserf-dir], [],
+[  --with-http-libserf-dir[=DIR]  HTTP: where to find libserf], $PHP_HTTP, $PHP_HTTP)
+PHP_ARG_WITH([http-libapr-dir], [],
+[  --with-http-libapr-dir[=DIR]   HTTP: where to find libapr], $PHP_HTTP_LIBSERF_DIR, "")
 
 if test "$PHP_HTTP" != "no"; then
 
@@ -132,36 +136,63 @@ dnl ----
 dnl ----
 dnl SERF
 dnl ----
-dnl
-dnl	if test "$PHP_HTTP_LIBSERF_DIR" = "no"; then
-dnl		AC_DEFINE([PHP_HTTP_HAVE_SERF], [0], [ ])
-dnl	else
-dnl		AC_MSG_CHECKING([for serf-?/serf.h])
-dnl		SERF_DIR=
-dnl		for i in "$PHP_HTTP_LIBSERF_DIR" /usr/local /usr /opt; do
-dnl			if test -f "$i/include/serf-0/serf.h"; then
-dnl				SERF_DIR=$i
-dnl				SERF_VER=0
-dnl				break
-dnl			elif test -f "$i/include/serf-1/serf.h"; then
-dnl				SERF_DIR=$i
-dnl				SERF_VER=1
-dnl			fi
-dnl		done
 
-dnl		if test "x$SERF_DIR" = "x"; then
-dnl			AC_MSG_RESULT([not found])
-dnl			AC_DEFINE([PHP_HTTP_HAVE_SERF], [0], [ ])
-dnl		else
-dnl			AC_MSG_RESULT([found in $SERF_DIR])
+	if test "$PHP_HTTP_LIBSERF_DIR" = "no"; then
+		AC_DEFINE([PHP_HTTP_HAVE_SERF], [0], [ ])
+	else
+		AC_MSG_CHECKING([for serf-?/serf.h])
+		SERF_DIR=
+		for i in "$PHP_HTTP_LIBSERF_DIR" /usr/local /usr /opt; do
+			if test -f "$i/include/serf-0/serf.h"; then
+				SERF_DIR=$i
+				SERF_VER=0
+				break
+			elif test -f "$i/include/serf-1/serf.h"; then
+				SERF_DIR=$i
+				SERF_VER=1
+			fi
+		done
 
-dnl			PHP_ADD_INCLUDE($SERF_DIR/include/serf-$SERF_VER)
-dnl			PHP_ADD_LIBRARY_WITH_PATH(serf-$SERF_VER, $SERF_DIR/$PHP_LIBDIR, HTTP_SHARED_LIBADD)
-dnl			AC_DEFINE([PHP_HTTP_HAVE_SERF], [1], [Have libserf support])
-dnl			HTTP_HAVE_A_REQUEST_LIB=true
-dnl		fi
-dnl	fi
-dnl	
+		if test "x$SERF_DIR" = "x"; then
+			AC_MSG_RESULT([not found])
+			AC_DEFINE([PHP_HTTP_HAVE_SERF], [0], [ ])
+		else
+			AC_MSG_RESULT([found in $SERF_DIR])
+			
+			dnl serf depends on apr
+			AC_MSG_CHECKING([for libapr-?])
+			APR_DIR=
+			for i in "$PHP_HTTP_LIBBAPR_DIR" /usr/local /usr /opt; do
+				if test -f "$i/lib/libapr-0.so"; then
+					APR_DIR=$i
+					APR_VER=0
+				elif test -f "$i/lib/libapr-1.so"; then
+					APR_DIR=$i
+					APR_VER=1
+				fi
+			done
+			
+			if test "x$APR_DIR" = "x"; then
+				AC_MSG_RESULT([not found])
+				AC_MSG_WARN([continuing without libserf support])
+				AC_DEFINE([PHP_HTTP_HAVE_SERF], [0], [ ])
+			else
+				AC_MSG_RESULT([found apr-$APR_VER in $APR_DIR])
+				
+				dnl serf is linked against openssl, and probably needs the same TS precautions
+				AC_CHECK_HEADER([openssl/crypto.h], [
+					AC_DEFINE([PHP_HTTP_HAVE_OPENSSL], [1], [ ])
+					PHP_ADD_LIBRARY_WITH_PATH([crypto], $SERF_DIR/$PHP_LIBDIR, PHP_HTTP_SHARED_LIBADD)
+				])
+				PHP_ADD_INCLUDE($SERF_DIR/include/serf-$SERF_VER)
+				PHP_ADD_LIBRARY_WITH_PATH(serf-$SERF_VER, $SERF_DIR/$PHP_LIBDIR, HTTP_SHARED_LIBADD)
+				PHP_ADD_LIBRARY_WITH_PATH(apr-$APR_VER, $APR_DIR/$PHP_LIBDIR, HTTP_SHARE_LIBADD)
+				AC_DEFINE([PHP_HTTP_HAVE_SERF], [1], [Have libserf support])
+				HTTP_HAVE_A_REQUEST_LIB=true
+			fi
+		fi
+	fi
+	
 
 dnl ----
 dnl CURL
@@ -339,7 +370,7 @@ dnl ----
 				AC_MSG_CHECKING([for libevent version, roughly])
 				
 				if test -f "$EVENT_DIR/include/event2/event.h"; then
-					EVENT_VER="`$EGREP _EVENT_VERSION $EVENT_DIR/include/event2/event.h | $AWK '{print $3}'`"
+					EVENT_VER="`$EGREP _EVENT_VERSION $EVENT_DIR/include/event2/event-config.h | $AWK '{print $3}'`"
 					AC_DEFINE([PHP_HTTP_HAVE_EVENT2], [1], [ ])
 				else
 					AC_DEFINE([PHP_HTTP_HAVE_EVENT2], [0], [ ])
