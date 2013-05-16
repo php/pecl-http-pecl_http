@@ -42,13 +42,98 @@ static inline char *localhostname(void)
 	return estrndup("localhost", lenof("localhost"));
 }
 
+static inline unsigned port(const char *scheme)
+{
+	unsigned port = 80;
+
+#if defined(ZTS) && defined(HAVE_GETSERVBYPORT_R)
+	int rc;
+	size_t len = 0xff;
+	char *buf = NULL;
+	struct servent *se_res, se_buf;
+
+	do {
+		buf = erealloc(buf, len);
+		len *= 2;
+		rc = getservbyname_r(scheme, "tcp", &se_buf, buf, len, &se_res);
+	} while (rc == ERANGE && len <= 0xfff);
+
+	if (!rc) {
+		port = ntohs(se_res->s_port);
+	}
+
+	efree(buf);
+#elif !defined(ZTS) && defined(HAVE_GETSERVBYPORT)
+	struct servent *se;
+
+	if ((se = getservbyname(scheme, "tcp")) && se->s_port) {
+		port = ntohs(se->s_port);
+	}
+#endif
+
+	return port;
+}
+static inline char *scheme(unsigned port)
+{
+	char *scheme;
+#if defined(ZTS) && defined(HAVE_GETSERVBYPORT_R)
+	int rc;
+	size_t len = 0xff;
+	char *buf = NULL;
+	struct servent *se_res, se_buf;
+#elif !defined(ZTS) && defined(HAVE_GETSERVBYPORT)
+	struct servent *se;
+#endif
+
+	switch (port) {
+	case 443:
+		scheme = estrndup("https", lenof("https"));
+		break;
+
+#if defined(ZTS) && !defined(HAVE_GETSERVBYPORT_R)
+	default:
+#elif !defined(ZTS) && !defined(HAVE_GETSERVBYPORT)
+	default:
+#endif
+	case 80:
+	case 0:
+		scheme = estrndup("http", lenof("http"));
+		break;
+
+#if defined(ZTS) && defined(HAVE_GETSERVBYPORT_R)
+	default:
+		do {
+			buf = erealloc(buf, len);
+			len *= 2;
+			rc = getservbyport_r(htons(port), "tcp", &se_buf, buf, len, &se_res);
+		} while (rc == ERANGE && len <= 0xfff);
+
+		if (!rc) {
+			scheme = estrdup(se_res->s_name);
+		} else {
+			scheme = estrndup("http", lenof("http"));
+		}
+
+		efree(buf);
+		break;
+
+#elif !defined(ZTS) && defined(HAVE_GETSERVBYPORT)
+	default:
+		if ((se = getservbyport(htons(port), "tcp")) && se->s_name) {
+			scheme = estrdup(se->s_name);
+		} else {
+			scheme = estrndup("http", lenof("http"));
+		}
+		break;
+#endif
+	}
+	return scheme;
+}
+
 static php_url *php_http_url_from_env(php_url *url TSRMLS_DC)
 {
 	zval *https, *zhost, *zport;
 	long port;
-#ifdef HAVE_GETSERVBYPORT
-	struct servent *se;
-#endif
 
 	if (!url) {
 		url = ecalloc(1, sizeof(*url));
@@ -64,28 +149,8 @@ static php_url *php_http_url_from_env(php_url *url TSRMLS_DC)
 	https = php_http_env_get_server_var(ZEND_STRL("HTTPS"), 1 TSRMLS_CC);
 	if (https && !strcasecmp(Z_STRVAL_P(https), "ON")) {
 		url->scheme = estrndup("https", lenof("https"));
-	} else switch (url->port) {
-		case 443:
-			url->scheme = estrndup("https", lenof("https"));
-			break;
-
-#ifndef HAVE_GETSERVBYPORT
-		default:
-#endif
-		case 80:
-		case 0:
-			url->scheme = estrndup("http", lenof("http"));
-			break;
-
-#ifdef HAVE_GETSERVBYPORT
-		default:
-			if ((se = getservbyport(htons(url->port), "tcp")) && se->s_name) {
-				url->scheme = estrdup(se->s_name);
-			} else {
-				url->scheme = estrndup("http", lenof("http"));
-			}
-			break;
-#endif
+	} else {
+		url->scheme = scheme(url->port);
 	}
 
 	/* host */
@@ -121,9 +186,6 @@ static php_url *php_http_url_from_env(php_url *url TSRMLS_DC)
 PHP_HTTP_API void php_http_url(int flags, const php_url *old_url, const php_url *new_url, php_url **url_ptr, char **url_str, size_t *url_len TSRMLS_DC)
 {
 	php_url *url, *tmp_url = NULL;
-#ifdef HAVE_GETSERVBYNAME
-	struct servent *se;
-#endif
 
 	/* set from env if requested */
 	if (flags & PHP_HTTP_URL_FROM_ENV) {
@@ -277,10 +339,7 @@ PHP_HTTP_API void php_http_url(int flags, const php_url *old_url, const php_url 
 	if (url->port) {
 		if (	((url->port == 80) && !strcmp(url->scheme, "http"))
 			||	((url->port ==443) && !strcmp(url->scheme, "https"))
-#ifdef HAVE_GETSERVBYNAME
-			||	((se = getservbyname(url->scheme, "tcp")) && se->s_port && 
-					(url->port == ntohs(se->s_port)))
-#endif
+			||	( url->port == port(url->scheme))
 		) {
 			url->port = 0;
 		}

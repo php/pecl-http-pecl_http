@@ -9,8 +9,6 @@ PHP_ARG_WITH([http-zlib-dir], [],
 PHP_ARG_WITH([http-libcurl-dir], [],
 [  --with-http-libcurl-dir[=DIR]  HTTP: where to find libcurl], $PHP_HTTP, $PHP_HTTP)
 PHP_ARG_WITH([http-libserf-dir], [],
-[  --with-http-libserf-dir[=DIR]  HTTP: where to find libserf], $PHP_HTTP, $PHP_HTTP)
-PHP_ARG_WITH([http-libevent-dir], [],
 [  --with-http-libevent-dir[=DIR] HTTP: where to find libevent], $PHP_HTTP_LIBCURL_DIR, "")
 PHP_ARG_WITH([http-libserf-dir], [],
 [  --with-http-libserf-dir[=DIR]  HTTP: where to find libserf], $PHP_HTTP, $PHP_HTTP)
@@ -106,7 +104,9 @@ dnl ----
 	PHP_CHECK_FUNC(gethostname, nsl)
 	PHP_CHECK_FUNC(getdomainname, nsl)
 	PHP_CHECK_FUNC(getservbyport, nsl)
+	PHP_CHECK_FUNC(getservbyport_r, nsl)
 	PHP_CHECK_FUNC(getservbyname, nsl)
+	PHP_CHECK_FUNC(getservbyname_r, nsl)
 
 dnl ----
 dnl ZLIB
@@ -159,18 +159,18 @@ dnl ----
 			AC_MSG_RESULT([not found])
 			AC_DEFINE([PHP_HTTP_HAVE_SERF], [0], [ ])
 		else
-			AC_MSG_RESULT([found in $SERF_DIR])
+			AC_MSG_RESULT([found serf-$SERF_VER in $SERF_DIR])
 			
 			dnl serf depends on apr
 			AC_MSG_CHECKING([for libapr-?])
 			APR_DIR=
 			for i in "$PHP_HTTP_LIBBAPR_DIR" /usr/local /usr /opt; do
-				if test -f "$i/lib/libapr-0.so"; then
-					APR_DIR=$i
-					APR_VER=0
-				elif test -f "$i/lib/libapr-1.so"; then
+				if test -f "$i/lib/libapr-1.so"; then
 					APR_DIR=$i
 					APR_VER=1
+				elif test -f "$i/lib/libapr-0.so"; then
+					APR_DIR=$i
+					APR_VER=0
 				fi
 			done
 			
@@ -187,8 +187,10 @@ dnl ----
 					PHP_ADD_LIBRARY_WITH_PATH([crypto], $SERF_DIR/$PHP_LIBDIR, PHP_HTTP_SHARED_LIBADD)
 				])
 				PHP_ADD_INCLUDE($SERF_DIR/include/serf-$SERF_VER)
+				PHP_ADD_INCLUDE($APR_DIR/include/apr-$APR_VER)
 				PHP_ADD_LIBRARY_WITH_PATH(serf-$SERF_VER, $SERF_DIR/$PHP_LIBDIR, HTTP_SHARED_LIBADD)
-				PHP_ADD_LIBRARY_WITH_PATH(apr-$APR_VER, $APR_DIR/$PHP_LIBDIR, HTTP_SHARE_LIBADD)
+				PHP_ADD_LIBRARY_WITH_PATH(apr-$APR_VER, $APR_DIR/$PHP_LIBDIR, HTTP_SHARED_LIBADD)
+				PHP_ADD_LIBRARY_WITH_PATH(aprutil-$APR_VER, $APR_DIR/$PHP_LIBDIR, HTTP_SHARED_LIBADD)
 				AC_DEFINE([PHP_HTTP_HAVE_SERF], [1], [Have libserf support])
 				HTTP_HAVE_A_REQUEST_LIB=true
 			fi
