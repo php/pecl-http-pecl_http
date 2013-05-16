@@ -174,6 +174,9 @@ PHP_MINIT_FUNCTION(http)
 	|| SUCCESS != PHP_MINIT_CALL(http_curl)
 	|| SUCCESS != PHP_MINIT_CALL(http_client_curl)
 #endif
+#if PHP_HTTP_HAVE_SERF
+	|| SUCCESS != PHP_MINIT_CALL(http_client_serf)
+#endif
 	|| SUCCESS != PHP_MINIT_CALL(http_url)
 	|| SUCCESS != PHP_MINIT_CALL(http_env)
 	|| SUCCESS != PHP_MINIT_CALL(http_env_request)
@@ -197,6 +200,9 @@ PHP_MSHUTDOWN_FUNCTION(http)
 #if PHP_HTTP_HAVE_CURL
 	|| SUCCESS != PHP_MSHUTDOWN_CALL(http_client_curl)
 	|| SUCCESS != PHP_MSHUTDOWN_CALL(http_curl)
+#endif
+#if PHP_HTTP_HAVE_SERF
+	|| SUCCESS != PHP_MSHUTDOWN_CALL(http_client_serf)
 #endif
 	|| SUCCESS != PHP_MSHUTDOWN_CALL(http_client)
 	) {
