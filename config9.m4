@@ -274,7 +274,7 @@ dnl ----
 			PHP_ADD_LIBRARY_WITH_PATH(curl, $CURL_DIR/$PHP_LIBDIR, HTTP_SHARED_LIBADD)
 			PHP_EVAL_LIBLINE(`$CURL_CONFIG --libs`, HTTP_SHARED_LIBADD)
 			if test "x$CURL_SSL" != "x"; then
-				PHP_ADD_LIBRARY_WITH_PATH([$CURL_SSL], $CURL_DIR/$PHP_LIBDIR, PHP_HTTP_SHARED_LIBADD)
+				PHP_ADD_LIBRARY_WITH_PATH([$CURL_SSL], $CURL_DIR/$PHP_LIBDIR, HTTP_SHARED_LIBADD)
 			fi
 			AC_DEFINE([PHP_HTTP_HAVE_CURL], [1], [Have libcurl support])
 			HTTP_HAVE_A_REQUEST_LIB=true
@@ -464,8 +464,8 @@ dnl ----
 	HTTP_SHARED_DEP([json])
 	
 	dnl extension deps
-	PHP_ADD_EXTENSION_DEP([http], [raphf], true)
-	PHP_ADD_EXTENSION_DEP([http], [propo], true)
+	PHP_ADD_EXTENSION_DEP([http], [raphf], true, true)
+	PHP_ADD_EXTENSION_DEP([http], [propo], true, true)
 	
 	PHP_SUBST([HTTP_SHARED_LIBADD])
 
@@ -510,5 +510,7 @@ dnl ----
 	"
 	PHP_INSTALL_HEADERS(ext/http, $PHP_HTTP_HEADERS)
 
+	echo HTTP_SHARED_LIBADD=$HTTP_SHARED_LIBADD
+	
 	AC_DEFINE([HAVE_HTTP], [1], [Have extended HTTP support])
 fi
