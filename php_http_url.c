@@ -833,7 +833,8 @@ static ZEND_RESULT_CODE to_utf16(parse_mb_func fn, const char *u8, uint16_t **u1
 
 	*u16 = ecalloc(4 * sizeof(uint16_t), u8_len + 1);
 	*len = 0;
-
+	TSRMLS_FETCH();
+	
 	while (offset < u8_len) {
 		unsigned wc;
 		uint16_t buf[2], *ptr = buf;
