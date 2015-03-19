@@ -830,10 +830,10 @@ typedef size_t (*parse_mb_func)(unsigned *wc, const char *ptr, const char *end);
 static ZEND_RESULT_CODE to_utf16(parse_mb_func fn, const char *u8, uint16_t **u16, size_t *len)
 {
 	size_t offset = 0, u8_len = strlen(u8);
+	TSRMLS_FETCH();
 
 	*u16 = ecalloc(4 * sizeof(uint16_t), u8_len + 1);
 	*len = 0;
-	TSRMLS_FETCH();
 	
 	while (offset < u8_len) {
 		unsigned wc;
