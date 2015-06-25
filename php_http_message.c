@@ -694,7 +694,7 @@ void php_http_message_object_reverse(zval *zmsg, zval *return_value)
 
 		efree(objects);
 	} else {
-		RETURN_ZVAL_FAST(zmsg);
+		RETURN_ZVAL(zmsg, 1, 0);
 	}
 }
 
@@ -1071,7 +1071,7 @@ static PHP_METHOD(HttpMessage, setBody)
 		PHP_HTTP_MESSAGE_OBJECT_INIT(obj);
 		php_http_message_object_prophandler_set_body(obj, zbody);
 	}
-	RETVAL_ZVAL_FAST(getThis());
+	RETVAL_ZVAL(getThis(), 1, 0);
 }
 
 ZEND_BEGIN_ARG_INFO_EX(ai_HttpMessage_addBody, 0, 0, 1)
@@ -1088,7 +1088,7 @@ static PHP_METHOD(HttpMessage, addBody)
 		PHP_HTTP_MESSAGE_OBJECT_INIT(obj);
 		php_http_message_body_to_callback(new_obj->body, (php_http_pass_callback_t) php_http_message_body_append, obj->message->body, 0, 0);
 	}
-	RETVAL_ZVAL_FAST(getThis());
+	RETVAL_ZVAL(getThis(), 1, 0);
 }
 
 ZEND_BEGIN_ARG_INFO_EX(ai_HttpMessage_getHeader, 0, 0, 1)
@@ -1109,7 +1109,7 @@ static PHP_METHOD(HttpMessage, getHeader)
 
 		if ((header = php_http_message_header(obj->message, header_str, header_len))) {
 			if (!header_ce) {
-				RETURN_ZVAL_FAST(header);
+				RETURN_ZVAL(header, 1, 0);
 			} else if (instanceof_function(header_ce, php_http_header_class_entry)) {
 				php_http_object_method_t cb;
 				zval argv[2];
@@ -1172,7 +1172,7 @@ static PHP_METHOD(HttpMessage, setHeader)
 		}
 		efree(name);
 	}
-	RETVAL_ZVAL_FAST(getThis());
+	RETVAL_ZVAL(getThis(), 1, 0);
 }
 
 ZEND_BEGIN_ARG_INFO_EX(ai_HttpMessage_setHeaders, 0, 0, 1)
@@ -1192,7 +1192,7 @@ static PHP_METHOD(HttpMessage, setHeaders)
 			array_join(Z_ARRVAL_P(new_headers), &obj->message->hdrs, 0, ARRAY_JOIN_PRETTIFY|ARRAY_JOIN_STRONLY);
 		}
 	}
-	RETVAL_ZVAL_FAST(getThis());
+	RETVAL_ZVAL(getThis(), 1, 0);
 }
 
 ZEND_BEGIN_ARG_INFO_EX(ai_HttpMessage_addHeader, 0, 0, 2)
@@ -1221,7 +1221,7 @@ static PHP_METHOD(HttpMessage, addHeader)
 		}
 		efree(name);
 	}
-	RETVAL_ZVAL_FAST(getThis());
+	RETVAL_ZVAL(getThis(), 1, 0);
 }
 
 ZEND_BEGIN_ARG_INFO_EX(ai_HttpMessage_addHeaders, 0, 0, 1)
@@ -1240,7 +1240,7 @@ static PHP_METHOD(HttpMessage, addHeaders)
 
 		array_join(Z_ARRVAL_P(new_headers), &obj->message->hdrs, append, ARRAY_JOIN_STRONLY|ARRAY_JOIN_PRETTIFY);
 	}
-	RETVAL_ZVAL_FAST(getThis());
+	RETVAL_ZVAL(getThis(), 1, 0);
 }
 
 ZEND_BEGIN_ARG_INFO_EX(ai_HttpMessage_getType, 0, 0, 0)
@@ -1270,7 +1270,7 @@ static PHP_METHOD(HttpMessage, setType)
 
 		php_http_message_set_type(obj->message, type);
 	}
-	RETVAL_ZVAL_FAST(getThis());
+	RETVAL_ZVAL(getThis(), 1, 0);
 }
 
 ZEND_BEGIN_ARG_INFO_EX(ai_HttpMessage_getInfo, 0, 0, 0)
@@ -1325,7 +1325,7 @@ static PHP_METHOD(HttpMessage, setInfo)
 	php_http_message_set_info(obj->message, &inf);
 	php_http_info_dtor(&inf);
 
-	RETVAL_ZVAL_FAST(getThis());
+	RETVAL_ZVAL(getThis(), 1, 0);
 }
 
 ZEND_BEGIN_ARG_INFO_EX(ai_HttpMessage_getHttpVersion, 0, 0, 0)
@@ -1363,7 +1363,7 @@ static PHP_METHOD(HttpMessage, setHttpVersion)
 
 	obj->message->http.version = version;
 
-	RETVAL_ZVAL_FAST(getThis());
+	RETVAL_ZVAL(getThis(), 1, 0);
 }
 
 ZEND_BEGIN_ARG_INFO_EX(ai_HttpMessage_getResponseCode, 0, 0, 0)
@@ -1412,7 +1412,7 @@ static PHP_METHOD(HttpMessage, setResponseCode)
 	obj->message->http.info.response.code = code;
 	PTR_SET(obj->message->http.info.response.status, estrdup(php_http_env_get_response_status_for_code(code)));
 
-	RETVAL_ZVAL_FAST(getThis());
+	RETVAL_ZVAL(getThis(), 1, 0);
 }
 
 ZEND_BEGIN_ARG_INFO_EX(ai_HttpMessage_getResponseStatus, 0, 0, 0)
@@ -1456,7 +1456,7 @@ static PHP_METHOD(HttpMessage, setResponseStatus)
 	}
 
 	PTR_SET(obj->message->http.info.response.status, estrndup(status, status_len));
-	RETVAL_ZVAL_FAST(getThis());
+	RETVAL_ZVAL(getThis(), 1, 0);
 }
 
 ZEND_BEGIN_ARG_INFO_EX(ai_HttpMessage_getRequestMethod, 0, 0, 0)
@@ -1507,7 +1507,7 @@ static PHP_METHOD(HttpMessage, setRequestMethod)
 	}
 
 	PTR_SET(obj->message->http.info.request.method, estrndup(method, method_len));
-	RETVAL_ZVAL_FAST(getThis());
+	RETVAL_ZVAL(getThis(), 1, 0);
 }
 
 ZEND_BEGIN_ARG_INFO_EX(ai_HttpMessage_getRequestUrl, 0, 0, 0)
@@ -1568,7 +1568,7 @@ static PHP_METHOD(HttpMessage, setRequestUrl)
 		PTR_SET(obj->message->http.info.request.url, url);
 	}
 
-	RETVAL_ZVAL_FAST(getThis());
+	RETVAL_ZVAL(getThis(), 1, 0);
 }
 
 ZEND_BEGIN_ARG_INFO_EX(ai_HttpMessage_getParentMessage, 0, 0, 0)
@@ -1653,7 +1653,7 @@ static PHP_METHOD(HttpMessage, toCallback)
 		zend_fcall_info_args_clear(&fcd.fci, 1);
 		zval_ptr_dtor(&fcd.fcz);
 
-		RETURN_ZVAL_FAST(getThis());
+		RETURN_ZVAL(getThis(), 1, 0);
 	}
 }
 
@@ -1747,7 +1747,7 @@ static PHP_METHOD(HttpMessage, prepend)
 	}
 
 	php_http_message_object_prepend(getThis(), prepend, top);
-	RETURN_ZVAL_FAST(getThis());
+	RETURN_ZVAL(getThis(), 1, 0);
 }
 
 ZEND_BEGIN_ARG_INFO_EX(ai_HttpMessage_reverse, 0, 0, 0)
@@ -1895,7 +1895,7 @@ static PHP_METHOD(HttpMessage, current)
 		php_http_message_object_t *obj = PHP_HTTP_OBJ(NULL, getThis());
 
 		if (!Z_ISUNDEF(obj->iterator)) {
-			RETURN_ZVAL_FAST(&obj->iterator);
+			RETURN_ZVAL(&obj->iterator, 1, 0);
 		}
 	}
 }
